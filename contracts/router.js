@@ -1,4 +1,4 @@
-import { Contract } from 'ethers';
+import { Contract, parseUnits } from 'ethers';
 import { readFile } from 'fs/promises';
 
 export default class Router {
@@ -15,5 +15,38 @@ export default class Router {
 
   getFactoryAddress() {
     return this.contract.factory();
+  }
+
+  async addLiquidity(data) {
+    const deadline = data?.deadline ? data.deadline : Math.floor(new Date().getTime() / 1000) + 10 * 60;
+    const token0Amount = parseUnits(data.token0Amount, data.token0Decimals);
+    const token1Amount = parseUnits(data.token1Amount, data.token1Decimals);
+    const token0MinAmount = parseUnits(data.token0MinAmount, data.token0Decimals);
+    const token1MinAmount = parseUnits(data.token1MinAmount, data.token1Decimals);
+
+    const gasEstimate = await this.contract.addLiquidity.estimateGas(
+      data.token0Address,
+      data.token1Address,
+      token0Amount,
+      token1Amount,
+      token0MinAmount,
+      token1MinAmount,
+      data.to,
+      deadline,
+    );
+
+    const tx = await this.contract.addLiquidity(
+      data.token0Address,
+      data.token1Address,
+      token0Amount,
+      token1Amount,
+      token0MinAmount,
+      token1MinAmount,
+      data.to,
+      deadline,
+      { gasLimit: gasEstimate },
+    );
+
+    return tx.wait(1);
   }
 }

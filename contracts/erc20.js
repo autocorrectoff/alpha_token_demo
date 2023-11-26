@@ -1,10 +1,10 @@
-import { Contract } from 'ethers';
+import { Contract, parseUnits } from 'ethers';
 import { readFile } from 'fs/promises';
 
-export default class Alpha {
-  constructor(provider) {
+export default class Erc20 {
+  constructor(provider, address) {
     this.provider = provider;
-    this.address = '0x6Fd7c66784508cdE319F80c54fC760C42eC400b7';
+    this.address = address;
   }
 
   async init() {
@@ -15,5 +15,12 @@ export default class Alpha {
 
   async getDecimals() {
     return +(await this.contract.decimals()).toString();
+  }
+
+  async approve(amount, to) {
+    const decimals = await this.getDecimals();
+    amount = parseUnits(amount, decimals);
+    const tx = await this.contract.approve(to, amount);
+    return tx.wait(1);
   }
 }
