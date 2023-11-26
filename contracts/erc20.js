@@ -23,4 +23,8 @@ export default class Erc20 {
     const tx = await this.contract.approve(to, amount);
     return tx.wait(1);
   }
+
+  balanceOf(address) {
+    return this.contract.balanceOf(address);
+  }
 }

@@ -2,6 +2,7 @@ import { config } from 'dotenv';
 import { Wallet, JsonRpcProvider } from 'ethers';
 import Erc20 from './contracts/erc20.js';
 import Router from './contracts/router.js';
+import Factory from './contracts/factory.js';
 
 config();
 
@@ -12,7 +13,7 @@ const provider = new JsonRpcProvider(process.env.JSON_RPC_URL);
 const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
 
 // EXAMPLE: provide liquidity
-async () => {
+(async () => {
   const usdc = new Erc20(wallet, usdcAddress);
   await usdc.init();
   const usdcDecimals = await usdc.getDecimals();
@@ -48,4 +49,42 @@ async () => {
   };
   const txReceipt = await router.addLiquidity(liquidityInput);
   console.log(txReceipt);
-};
+});
+
+// EXAMPLE: withdraw liquidity
+(async () => {
+  // Step 1: get liquidity for address
+  const factory = new Factory(wallet);
+  await factory.init();
+
+  const pairAddress = await factory.getPair(alphaAddress, usdcAddress);
+  console.log(`ALPHA - USDC Pool address: ${pairAddress}`);
+
+  const pair = new Erc20(wallet, pairAddress);
+  await pair.init();
+
+  const liquidityTokens = await pair.balanceOf(wallet.address);
+  console.log(`Liqidity tokens amount: ${liquidityTokens}`);
+
+  // Step 2: withdraw desired liquidity
+  const router = new Router(wallet);
+  await router.init();
+
+  const liquidityToRemove = '1000000000000';
+  const approvalTx = await pair.approve(liquidityToRemove, router.address);
+  console.log(approvalTx);
+
+  const liquidityInput = {
+    token0Address: usdcAddress,
+    token0Decimals: 6,
+    token0MinAmount: '1',
+    token1Address: alphaAddress,
+    token1Decimals: 18,
+    token1MinAmount: '1',
+    liquidityToRemove,
+    to: wallet.address,
+    deadline: null,
+  };
+  const txReceipt = await router.removeLiquidity(liquidityInput);
+  console.log(txReceipt);
+});

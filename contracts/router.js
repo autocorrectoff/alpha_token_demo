@@ -49,4 +49,21 @@ export default class Router {
 
     return tx.wait(1);
   }
+
+  async removeLiquidity(data) {
+    const deadline = data?.deadline ? data.deadline : Math.floor(new Date().getTime() / 1000) + 10 * 60;
+    const token0MinAmount = parseUnits(data.token0MinAmount, data.token0Decimals);
+    const token1MinAmount = parseUnits(data.token1MinAmount, data.token1Decimals);
+
+    const tx = await this.contract.removeLiquidity(
+      data.token0Address,
+      data.token1Address,
+      data.liquidityToRemove,
+      token0MinAmount,
+      token1MinAmount,
+      data.to,
+      deadline,
+    );
+    return tx.wait(1);
+  }
 }
