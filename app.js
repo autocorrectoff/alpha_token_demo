@@ -27,11 +27,11 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
   const router = new Router(wallet);
   await router.init();
 
-  const alphaAmount = '5';
+  const alphaAmount = '4';
   const alphaApproveTx = await alpha.approve(alphaAmount, router.address);
   console.log(alphaApproveTx);
 
-  const usdcAmount = '5';
+  const usdcAmount = '4';
   const usdcApproveTx = await usdc.approve(usdcAmount, router.address);
   console.log(usdcApproveTx);
 
@@ -125,4 +125,64 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
   const amountOut = '2';
   amounts = await router.getAmountsIn(amountOut, usdcDecimals, alphaAddress, usdcAddress);
   console.log(`${formatUnits(amounts[0], alphaDecimals)} alpha is needed for ${formatUnits(amounts[1], usdcDecimals)} usdc`);
+});
+
+// EXAMPLE: perform USDC -> ALPHA swap
+(async () => {
+  const router = new Router(wallet);
+  await router.init();
+
+  const usdcDecimals = 6;
+
+    // get amounts out
+    const amountIn = '1';
+    let amounts = await router.getAmountsOut(amountIn, usdcDecimals, usdcAddress, alphaAddress);
+
+    // Approve USDC
+    const usdc = new Erc20(wallet, usdcAddress);
+    await usdc.init();
+    const usdcApproveTxReceipt = await usdc.approve(amountIn, router.address);
+    console.log(usdcApproveTxReceipt);
+
+    // Swap
+    const swapInput = {
+      amountIn: amounts[0],
+      amountOut: amounts[1],
+      inTokenAddress: usdcAddress,
+      outTokenAddress: alphaAddress,
+      to: wallet.address,
+      deadline: null
+    }
+    const txReceipt = await router.swapExactTokensForTokens(swapInput);
+    console.log(txReceipt);
+});
+
+// EXAMPLE: perform ALPHA -> USDC swap
+(async () => {
+  const router = new Router(wallet);
+  await router.init();
+
+  const alphaDecimals = 18;
+
+    // get amounts out
+    const amountIn = '1';
+    let amounts = await router.getAmountsOut(amountIn, alphaDecimals, alphaAddress, usdcAddress);
+
+    // Approve ALPHA
+    const alpha = new Erc20(wallet, alphaAddress);
+    await alpha.init();
+    const alphaApproveTxReceipt = await alpha.approve(amountIn, router.address);
+    console.log(alphaApproveTxReceipt);
+
+    // Swap
+    const swapInput = {
+      amountIn: amounts[0],
+      amountOut: amounts[1],
+      inTokenAddress: alphaAddress,
+      outTokenAddress: usdcAddress,
+      to: wallet.address,
+      deadline: null
+    }
+    const txReceipt = await router.swapExactTokensForTokens(swapInput);
+    console.log(txReceipt);
 })();

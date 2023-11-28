@@ -4,7 +4,7 @@ import { readFile } from 'fs/promises';
 export default class Router {
   constructor(provider) {
     this.provider = provider;
-    this.address = '0x8F2DdC83ea0a7329AD463C3a7838787A2ba984CD';
+    this.address = '0x2d296c299C2e73937654Eb530e5945d29b8462cC';
   }
 
   async init() {
@@ -75,5 +75,11 @@ export default class Router {
   getAmountsIn(amountOut, outTokenDecimals, inTokenAddress, outTokenAddress) {
     amountOut = parseUnits(amountOut, outTokenDecimals);
     return this.contract.getAmountsIn(amountOut, [inTokenAddress, outTokenAddress]);
+  }
+
+  async swapExactTokensForTokens(data) {
+    const deadline = data?.deadline ? data.deadline : Math.floor(new Date().getTime() / 1000) + 10 * 60;
+    const tx = await this.contract.swapExactTokensForTokens(data.amountIn, data.amountOut, [data.inTokenAddress, data.outTokenAddress], data.to, deadline);
+    return tx.wait(1);
   }
 }
