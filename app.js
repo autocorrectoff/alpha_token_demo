@@ -1,5 +1,5 @@
 import { config } from 'dotenv';
-import { Wallet, JsonRpcProvider } from 'ethers';
+import { Wallet, JsonRpcProvider, formatUnits } from 'ethers';
 import Erc20 from './contracts/erc20.js';
 import Router from './contracts/router.js';
 import Factory from './contracts/factory.js';
@@ -88,3 +88,41 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
   const txReceipt = await router.removeLiquidity(liquidityInput);
   console.log(txReceipt);
 });
+
+// EXAMPLE: get swap rates - USDC -> ALPHA
+(async () => {
+  const router = new Router(wallet);
+  await router.init();
+
+  const usdcDecimals = 6;
+  const alphaDecimals = 18;
+
+  // get amounts out
+  const amountIn = '2';
+  let amounts = await router.getAmountsOut(amountIn, usdcDecimals, usdcAddress, alphaAddress);
+  console.log(`For ${formatUnits(amounts[0], usdcDecimals)} usdc return is ${formatUnits(amounts[1], alphaDecimals)} alpha`);
+
+  // get amounts in
+  const amountOut = '2';
+  amounts = await router.getAmountsIn(amountOut, alphaDecimals, usdcAddress, alphaAddress);
+  console.log(`${formatUnits(amounts[0], usdcDecimals)} usdc is needed for ${formatUnits(amounts[1], alphaDecimals)} alpha`);
+});
+
+// EXAMPLE: get swap rates - ALPHA -> USDC
+(async () => {
+  const router = new Router(wallet);
+  await router.init();
+
+  const usdcDecimals = 6;
+  const alphaDecimals = 18;
+
+  // get amounts out
+  const amountIn = '2';
+  let amounts = await router.getAmountsOut(amountIn, alphaDecimals, alphaAddress, usdcAddress);
+  console.log(`For ${formatUnits(amounts[0], alphaDecimals)} alpha return is ${formatUnits(amounts[1], usdcDecimals)} usdc`);
+
+  // get amounts in
+  const amountOut = '2';
+  amounts = await router.getAmountsIn(amountOut, usdcDecimals, alphaAddress, usdcAddress);
+  console.log(`${formatUnits(amounts[0], alphaDecimals)} alpha is needed for ${formatUnits(amounts[1], usdcDecimals)} usdc`);
+})();

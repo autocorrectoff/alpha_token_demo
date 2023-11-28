@@ -66,4 +66,14 @@ export default class Router {
     );
     return tx.wait(1);
   }
+
+  getAmountsOut(amountIn, inTokenDecimals, inTokenAddress, outTokenAddress) {
+    amountIn = parseUnits(amountIn, inTokenDecimals);
+    return this.contract.getAmountsOut(amountIn, [inTokenAddress, outTokenAddress]);
+  }
+
+  getAmountsIn(amountOut, outTokenDecimals, inTokenAddress, outTokenAddress) {
+    amountOut = parseUnits(amountOut, outTokenDecimals);
+    return this.contract.getAmountsIn(amountOut, [inTokenAddress, outTokenAddress]);
+  }
 }
