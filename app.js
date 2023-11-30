@@ -185,4 +185,4 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
     }
     const txReceipt = await router.swapExactTokensForTokens(swapInput);
     console.log(txReceipt);
-})();
+});
