@@ -7,7 +7,8 @@ import Factory from './contracts/factory.js';
 config();
 
 const alphaAddress = '0x6Fd7c66784508cdE319F80c54fC760C42eC400b7';
-const usdcAddress = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
+const usdcAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359';
+const usdtAddress = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F';
 
 const provider = new JsonRpcProvider(process.env.JSON_RPC_URL);
 const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
@@ -27,11 +28,11 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
   const router = new Router(wallet);
   await router.init();
 
-  const alphaAmount = '4';
+  const alphaAmount = '50';
   const alphaApproveTx = await alpha.approve(alphaAmount, router.address);
   console.log(alphaApproveTx);
 
-  const usdcAmount = '4';
+  const usdcAmount = '50';
   const usdcApproveTx = await usdc.approve(usdcAmount, router.address);
   console.log(usdcApproveTx);
 
@@ -49,7 +50,7 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
   };
   const txReceipt = await router.addLiquidity(liquidityInput);
   console.log(txReceipt);
-});
+})();
 
 // EXAMPLE: withdraw liquidity
 (async () => {
