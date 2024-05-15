@@ -9,16 +9,17 @@ config();
 const alphaAddress = '0x6Fd7c66784508cdE319F80c54fC760C42eC400b7';
 const usdcAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359';
 const usdtAddress = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F';
+const usdceAddress = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
 
 const provider = new JsonRpcProvider(process.env.JSON_RPC_URL);
 const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
 
 // EXAMPLE: provide liquidity
 (async () => {
-  const usdc = new Erc20(wallet, usdcAddress);
-  await usdc.init();
-  const usdcDecimals = await usdc.getDecimals();
-  console.log(`USDC decimals: ${usdcDecimals}`);
+  const usdt = new Erc20(wallet, usdtAddress);
+  await usdt.init();
+  const usdtDecimals = await usdt.getDecimals();
+  console.log(`USDT decimals: ${usdtDecimals}`);
 
   const alpha = new Erc20(wallet, alphaAddress);
   await alpha.init();
@@ -28,19 +29,19 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
   const router = new Router(wallet);
   await router.init();
 
-  const alphaAmount = '50';
+  const alphaAmount = '15';
   const alphaApproveTx = await alpha.approve(alphaAmount, router.address);
   console.log(alphaApproveTx);
 
-  const usdcAmount = '50';
-  const usdcApproveTx = await usdc.approve(usdcAmount, router.address);
-  console.log(usdcApproveTx);
+  const usdtAmount = '15';
+  const usdtApproveTx = await usdt.approve(usdtAmount, router.address);
+  console.log(usdtApproveTx);
 
   const liquidityInput = {
-    token0Address: usdc.address,
-    token0Decimals: usdcDecimals,
-    token0Amount: usdcAmount,
-    token0MinAmount: usdcAmount,
+    token0Address: usdt.address,
+    token0Decimals: usdtDecimals,
+    token0Amount: usdtAmount,
+    token0MinAmount: usdtAmount,
     token1Address: alpha.address,
     token1Decimals: alphaDecimals,
     token1Amount: alphaAmount,
@@ -52,31 +53,41 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
   console.log(txReceipt);
 })();
 
-// EXAMPLE: withdraw liquidity
-(async () => {
-  // Step 1: get liquidity for address
+// EXAMPLE: get liquidity tokens
+(async() => {
   const factory = new Factory(wallet);
   await factory.init();
 
-  const pairAddress = await factory.getPair(alphaAddress, usdcAddress);
-  console.log(`ALPHA - USDC Pool address: ${pairAddress}`);
+  const pairAddress = await factory.getPair(alphaAddress, usdtAddress);
+  console.log(`ALPHA - USDT Pool address: ${pairAddress}`);
 
   const pair = new Erc20(wallet, pairAddress);
   await pair.init();
 
   const liquidityTokens = await pair.balanceOf(wallet.address);
   console.log(`Liqidity tokens amount: ${liquidityTokens}`);
+});
 
-  // Step 2: withdraw desired liquidity
+// EXAMPLE: withdraw liquidity
+(async () => {
+  const factory = new Factory(wallet);
+  await factory.init();
+
+  const pairAddress = await factory.getPair(alphaAddress, usdtAddress);
+  console.log(`ALPHA - USDT Pool address: ${pairAddress}`);
+
+  const pair = new Erc20(wallet, pairAddress);
+  await pair.init();
+
   const router = new Router(wallet);
   await router.init();
 
-  const liquidityToRemove = '1000000000000';
+  const liquidityToRemove = '30000000000000';
   const approvalTx = await pair.approve(liquidityToRemove, router.address);
   console.log(approvalTx);
 
   const liquidityInput = {
-    token0Address: usdcAddress,
+    token0Address: usdtAddress,
     token0Decimals: 6,
     token0MinAmount: '1',
     token1Address: alphaAddress,

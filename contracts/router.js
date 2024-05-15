@@ -4,7 +4,7 @@ import { readFile } from 'fs/promises';
 export default class Router {
   constructor(provider) {
     this.provider = provider;
-    this.address = '0x2d296c299C2e73937654Eb530e5945d29b8462cC';
+    this.address = '0x03f81D7199633Ec31175D0A641080f8ccFDa4280';
   }
 
   async init() {

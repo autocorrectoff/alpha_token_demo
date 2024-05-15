@@ -4,7 +4,7 @@ import { readFile } from 'fs/promises';
 export default class Factory {
   constructor(provider) {
     this.provider = provider;
-    this.address = '0x24Df3e38c7bf83B91c1A1F940eBfD9E6c2D59604';
+    this.address = '0x2FCAdC83035C4fb3a271386203cce02Eb9AFAfd9';
   }
 
   async init() {
