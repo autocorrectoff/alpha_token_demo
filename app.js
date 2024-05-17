@@ -7,6 +7,7 @@ import Factory from './contracts/factory.js';
 config();
 
 const alphaAddress = '0x6Fd7c66784508cdE319F80c54fC760C42eC400b7';
+const uhuAddress = '0x8d5482c83bb5b49e2b4b97bcf264342eac164c00';
 const usdcAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359';
 const usdtAddress = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F';
 const usdceAddress = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
@@ -16,50 +17,50 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
 
 // EXAMPLE: provide liquidity
 (async () => {
-  const usdt = new Erc20(wallet, usdtAddress);
-  await usdt.init();
-  const usdtDecimals = await usdt.getDecimals();
-  console.log(`USDT decimals: ${usdtDecimals}`);
+  const usdc = new Erc20(wallet, usdcAddress);
+  await usdc.init();
+  const usdcDecimals = await usdc.getDecimals();
+  console.log(`USDC decimals: ${usdcDecimals}`);
 
-  const alpha = new Erc20(wallet, alphaAddress);
-  await alpha.init();
-  const alphaDecimals = await alpha.getDecimals();
-  console.log(`ALPHA decimals: ${alphaDecimals}`);
+  const uhu = new Erc20(wallet, uhuAddress);
+  await uhu.init();
+  const uhuDecimals = await uhu.getDecimals();
+  console.log(`UHU decimals: ${uhuDecimals}`);
 
   const router = new Router(wallet);
   await router.init();
 
-  const alphaAmount = '15';
-  const alphaApproveTx = await alpha.approve(alphaAmount, router.address);
-  console.log(alphaApproveTx);
+  const uhuAmount = '50';
+  const uhuApproveTx = await uhu.approve(uhuAmount, router.address);
+  console.log(uhuApproveTx);
 
-  const usdtAmount = '15';
-  const usdtApproveTx = await usdt.approve(usdtAmount, router.address);
-  console.log(usdtApproveTx);
+  const usdcAmount = '15';
+  const usdcApproveTx = await usdc.approve(usdcAmount, router.address);
+  console.log(usdcApproveTx);
 
   const liquidityInput = {
-    token0Address: usdt.address,
-    token0Decimals: usdtDecimals,
-    token0Amount: usdtAmount,
-    token0MinAmount: usdtAmount,
-    token1Address: alpha.address,
-    token1Decimals: alphaDecimals,
-    token1Amount: alphaAmount,
-    token1MinAmount: alphaAmount,
+    token0Address: usdc.address,
+    token0Decimals: usdcDecimals,
+    token0Amount: usdcAmount,
+    token0MinAmount: usdcAmount,
+    token1Address: uhu.address,
+    token1Decimals: uhuDecimals,
+    token1Amount: uhuAmount,
+    token1MinAmount: uhuAmount,
     to: wallet.address,
     deadline: null,
   };
   const txReceipt = await router.addLiquidity(liquidityInput);
   console.log(txReceipt);
-})();
+});
 
 // EXAMPLE: get liquidity tokens
 (async() => {
   const factory = new Factory(wallet);
   await factory.init();
 
-  const pairAddress = await factory.getPair(alphaAddress, usdtAddress);
-  console.log(`ALPHA - USDT Pool address: ${pairAddress}`);
+  const pairAddress = await factory.getPair(uhuAddress, usdcAddress);
+  console.log(`UHU - USDC Pool address: ${pairAddress}`);
 
   const pair = new Erc20(wallet, pairAddress);
   await pair.init();
@@ -101,42 +102,42 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
   console.log(txReceipt);
 });
 
-// EXAMPLE: get swap rates - USDC -> ALPHA
+// EXAMPLE: get swap rates - USDC -> UHU
 (async () => {
   const router = new Router(wallet);
   await router.init();
 
   const usdcDecimals = 6;
-  const alphaDecimals = 18;
+  const uhuDecimals = 18;
 
   // get amounts out
-  const amountIn = '2';
-  let amounts = await router.getAmountsOut(amountIn, usdcDecimals, usdcAddress, alphaAddress);
-  console.log(`For ${formatUnits(amounts[0], usdcDecimals)} usdc return is ${formatUnits(amounts[1], alphaDecimals)} alpha`);
+  const amountIn = '1';
+  let amounts = await router.getAmountsOut(amountIn, usdcDecimals, usdcAddress, uhuAddress);
+  console.log(`For ${formatUnits(amounts[0], usdcDecimals)} usdc return is ${formatUnits(amounts[1], uhuDecimals)} uhu`);
 
   // get amounts in
-  const amountOut = '2';
-  amounts = await router.getAmountsIn(amountOut, alphaDecimals, usdcAddress, alphaAddress);
-  console.log(`${formatUnits(amounts[0], usdcDecimals)} usdc is needed for ${formatUnits(amounts[1], alphaDecimals)} alpha`);
+  const amountOut = '1';
+  amounts = await router.getAmountsIn(amountOut, uhuDecimals, usdcAddress, uhuAddress);
+  console.log(`${formatUnits(amounts[0], usdcDecimals)} usdc is needed for ${formatUnits(amounts[1], uhuDecimals)} uhu`);
 });
 
-// EXAMPLE: get swap rates - ALPHA -> USDC
+// EXAMPLE: get swap rates - UHU -> USDC
 (async () => {
   const router = new Router(wallet);
   await router.init();
 
   const usdcDecimals = 6;
-  const alphaDecimals = 18;
+  const uhuDecimals = 18;
 
   // get amounts out
-  const amountIn = '2';
-  let amounts = await router.getAmountsOut(amountIn, alphaDecimals, alphaAddress, usdcAddress);
-  console.log(`For ${formatUnits(amounts[0], alphaDecimals)} alpha return is ${formatUnits(amounts[1], usdcDecimals)} usdc`);
+  const amountIn = '1';
+  let amounts = await router.getAmountsOut(amountIn, uhuDecimals, uhuAddress, usdcAddress);
+  console.log(`For ${formatUnits(amounts[0], uhuDecimals)} uhu return is ${formatUnits(amounts[1], usdcDecimals)} usdc`);
 
   // get amounts in
-  const amountOut = '2';
-  amounts = await router.getAmountsIn(amountOut, usdcDecimals, alphaAddress, usdcAddress);
-  console.log(`${formatUnits(amounts[0], alphaDecimals)} alpha is needed for ${formatUnits(amounts[1], usdcDecimals)} usdc`);
+  const amountOut = '1';
+  amounts = await router.getAmountsIn(amountOut, usdcDecimals, uhuAddress, usdcAddress);
+  console.log(`${formatUnits(amounts[0], uhuDecimals)} uhu is needed for ${formatUnits(amounts[1], usdcDecimals)} usdc`);
 });
 
 // EXAMPLE: perform USDC -> ALPHA swap
@@ -169,32 +170,32 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
     console.log(txReceipt);
 });
 
-// EXAMPLE: perform ALPHA -> USDC swap
+// EXAMPLE: perform UHU -> USDC swap
 (async () => {
   const router = new Router(wallet);
   await router.init();
 
-  const alphaDecimals = 18;
+  const uhuDecimals = 18;
 
     // get amounts out
     const amountIn = '1';
-    let amounts = await router.getAmountsOut(amountIn, alphaDecimals, alphaAddress, usdcAddress);
+    let amounts = await router.getAmountsOut(amountIn, uhuDecimals, uhuAddress, usdcAddress);
 
-    // Approve ALPHA
-    const alpha = new Erc20(wallet, alphaAddress);
-    await alpha.init();
-    const alphaApproveTxReceipt = await alpha.approve(amountIn, router.address);
-    console.log(alphaApproveTxReceipt);
+    // Approve UHU
+    const uhu = new Erc20(wallet, uhuAddress);
+    await uhu.init();
+    const uhuApproveTxReceipt = await uhu.approve(amountIn, router.address);
+    console.log(uhuApproveTxReceipt);
 
     // Swap
     const swapInput = {
       amountIn: amounts[0],
       amountOut: amounts[1],
-      inTokenAddress: alphaAddress,
+      inTokenAddress: uhuAddress,
       outTokenAddress: usdcAddress,
       to: wallet.address,
       deadline: null
     }
     const txReceipt = await router.swapExactTokensForTokens(swapInput);
     console.log(txReceipt);
-});
+})();
