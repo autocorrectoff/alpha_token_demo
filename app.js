@@ -15,7 +15,7 @@ const usdceAddress = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
 const provider = new JsonRpcProvider(process.env.JSON_RPC_URL);
 const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
 
-// EXAMPLE: provide liquidity
+// EXAMPLE: provide liquidity UHU - USDC
 (async () => {
   const usdc = new Erc20(wallet, usdcAddress);
   await usdc.init();
@@ -30,11 +30,11 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
   const router = new Router(wallet);
   await router.init();
 
-  const uhuAmount = '50';
+  const uhuAmount = '5';
   const uhuApproveTx = await uhu.approve(uhuAmount, router.address);
   console.log(uhuApproveTx);
 
-  const usdcAmount = '15';
+  const usdcAmount = '5';
   const usdcApproveTx = await usdc.approve(usdcAmount, router.address);
   console.log(usdcApproveTx);
 
@@ -42,11 +42,9 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
     token0Address: usdc.address,
     token0Decimals: usdcDecimals,
     token0Amount: usdcAmount,
-    token0MinAmount: usdcAmount,
     token1Address: uhu.address,
     token1Decimals: uhuDecimals,
     token1Amount: uhuAmount,
-    token1MinAmount: uhuAmount,
     to: wallet.address,
     deadline: null,
   };
@@ -54,8 +52,60 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
   console.log(txReceipt);
 });
 
-// EXAMPLE: get liquidity tokens
-(async() => {
+// EXAMPLE: provide liquidity UHU - USDT
+(async () => {
+  const usdt = new Erc20(wallet, usdtAddress);
+  await usdt.init();
+  const usdtDecimals = await usdt.getDecimals();
+  console.log(`USDT decimals: ${usdtDecimals}`);
+
+  const uhu = new Erc20(wallet, uhuAddress);
+  await uhu.init();
+  const uhuDecimals = await uhu.getDecimals();
+  console.log(`UHU decimals: ${uhuDecimals}`);
+
+  const router = new Router(wallet);
+  await router.init();
+
+  const uhuAmount = '5';
+  const uhuApproveTx = await uhu.approve(uhuAmount, router.address);
+  console.log(uhuApproveTx);
+
+  const usdtAmount = '5';
+  const usdtApproveTx = await usdt.approve(usdtAmount, router.address);
+  console.log(usdtApproveTx);
+
+  const liquidityInput = {
+    token0Address: usdt.address,
+    token0Decimals: usdtDecimals,
+    token0Amount: usdtAmount,
+    token1Address: uhu.address,
+    token1Decimals: uhuDecimals,
+    token1Amount: uhuAmount,
+    to: wallet.address,
+    deadline: null,
+  };
+  const txReceipt = await router.addLiquidity(liquidityInput);
+  console.log(txReceipt);
+});
+
+// EXAMPLE: get liquidity tokens for UHU - USDT
+(async () => {
+  const factory = new Factory(wallet);
+  await factory.init();
+
+  const pairAddress = await factory.getPair(uhuAddress, usdtAddress);
+  console.log(`UHU - USDT Pool address: ${pairAddress}`);
+
+  const pair = new Erc20(wallet, pairAddress);
+  await pair.init();
+
+  const liquidityTokens = await pair.balanceOf(wallet.address);
+  console.log(`Liqidity tokens amount: ${liquidityTokens}`);
+});
+
+// EXAMPLE: get liquidity tokens for UHU - USDC
+(async () => {
   const factory = new Factory(wallet);
   await factory.init();
 
@@ -69,13 +119,13 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
   console.log(`Liqidity tokens amount: ${liquidityTokens}`);
 });
 
-// EXAMPLE: withdraw liquidity
+// EXAMPLE: withdraw liquidity UHU - USDT
 (async () => {
   const factory = new Factory(wallet);
   await factory.init();
 
-  const pairAddress = await factory.getPair(alphaAddress, usdtAddress);
-  console.log(`ALPHA - USDT Pool address: ${pairAddress}`);
+  const pairAddress = await factory.getPair(uhuAddress, usdtAddress);
+  console.log(`UHU - USDT Pool address: ${pairAddress}`);
 
   const pair = new Erc20(wallet, pairAddress);
   await pair.init();
@@ -83,7 +133,7 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
   const router = new Router(wallet);
   await router.init();
 
-  const liquidityToRemove = '30000000000000';
+  const liquidityToRemove = '2738612787525';
   const approvalTx = await pair.approve(liquidityToRemove, router.address);
   console.log(approvalTx);
 
@@ -91,7 +141,40 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
     token0Address: usdtAddress,
     token0Decimals: 6,
     token0MinAmount: '1',
-    token1Address: alphaAddress,
+    token1Address: uhuAddress,
+    token1Decimals: 18,
+    token1MinAmount: '1',
+    liquidityToRemove,
+    to: wallet.address,
+    deadline: null,
+  };
+  const txReceipt = await router.removeLiquidity(liquidityInput);
+  console.log(txReceipt);
+});
+
+// EXAMPLE: withdraw liquidity UHU - USDC
+(async () => {
+  const factory = new Factory(wallet);
+  await factory.init();
+
+  const pairAddress = await factory.getPair(uhuAddress, usdcAddress);
+  console.log(`UHU - USDC Pool address: ${pairAddress}`);
+
+  const pair = new Erc20(wallet, pairAddress);
+  await pair.init();
+
+  const router = new Router(wallet);
+  await router.init();
+
+  const liquidityToRemove = '';
+  const approvalTx = await pair.approve(liquidityToRemove, router.address);
+  console.log(approvalTx);
+
+  const liquidityInput = {
+    token0Address: usdcAddress,
+    token0Decimals: 6,
+    token0MinAmount: '1',
+    token1Address: uhuAddress,
     token1Decimals: 18,
     token1MinAmount: '1',
     liquidityToRemove,
@@ -147,27 +230,27 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
 
   const usdcDecimals = 6;
 
-    // get amounts out
-    const amountIn = '1';
-    let amounts = await router.getAmountsOut(amountIn, usdcDecimals, usdcAddress, alphaAddress);
+  // get amounts out
+  const amountIn = '1';
+  let amounts = await router.getAmountsOut(amountIn, usdcDecimals, usdcAddress, alphaAddress);
 
-    // Approve USDC
-    const usdc = new Erc20(wallet, usdcAddress);
-    await usdc.init();
-    const usdcApproveTxReceipt = await usdc.approve(amountIn, router.address);
-    console.log(usdcApproveTxReceipt);
+  // Approve USDC
+  const usdc = new Erc20(wallet, usdcAddress);
+  await usdc.init();
+  const usdcApproveTxReceipt = await usdc.approve(amountIn, router.address);
+  console.log(usdcApproveTxReceipt);
 
-    // Swap
-    const swapInput = {
-      amountIn: amounts[0],
-      amountOut: amounts[1],
-      inTokenAddress: usdcAddress,
-      outTokenAddress: alphaAddress,
-      to: wallet.address,
-      deadline: null
-    }
-    const txReceipt = await router.swapExactTokensForTokens(swapInput);
-    console.log(txReceipt);
+  // Swap
+  const swapInput = {
+    amountIn: amounts[0],
+    amountOut: amounts[1],
+    inTokenAddress: usdcAddress,
+    outTokenAddress: alphaAddress,
+    to: wallet.address,
+    deadline: null
+  }
+  const txReceipt = await router.swapExactTokensForTokens(swapInput);
+  console.log(txReceipt);
 });
 
 // EXAMPLE: perform UHU -> USDC swap
@@ -177,25 +260,55 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
 
   const uhuDecimals = 18;
 
-    // get amounts out
-    const amountIn = '1';
-    let amounts = await router.getAmountsOut(amountIn, uhuDecimals, uhuAddress, usdcAddress);
+  // get amounts out
+  const amountIn = '1';
+  let amounts = await router.getAmountsOut(amountIn, uhuDecimals, uhuAddress, usdcAddress);
 
-    // Approve UHU
-    const uhu = new Erc20(wallet, uhuAddress);
-    await uhu.init();
-    const uhuApproveTxReceipt = await uhu.approve(amountIn, router.address);
-    console.log(uhuApproveTxReceipt);
+  // Approve UHU
+  const uhu = new Erc20(wallet, uhuAddress);
+  await uhu.init();
+  const uhuApproveTxReceipt = await uhu.approve(amountIn, router.address);
+  console.log(uhuApproveTxReceipt);
 
-    // Swap
-    const swapInput = {
-      amountIn: amounts[0],
-      amountOut: amounts[1],
-      inTokenAddress: uhuAddress,
-      outTokenAddress: usdcAddress,
-      to: wallet.address,
-      deadline: null
-    }
-    const txReceipt = await router.swapExactTokensForTokens(swapInput);
-    console.log(txReceipt);
+  // Swap
+  const swapInput = {
+    amountIn: amounts[0],
+    amountOut: amounts[1],
+    inTokenAddress: uhuAddress,
+    outTokenAddress: usdcAddress,
+    to: wallet.address,
+    deadline: null
+  }
+  const txReceipt = await router.swapExactTokensForTokens(swapInput);
+  console.log(txReceipt);
+});
+
+// EXAMPLE: perform USDC -> UHU swap
+(async () => {
+  const router = new Router(wallet);
+  await router.init();
+
+  const usdcDecimals = 6;
+
+  // get amounts out
+  const amountIn = '1';
+  let amounts = await router.getAmountsOut(amountIn, usdcDecimals, usdcAddress, uhuAddress);
+
+  // Approve USDC
+  const usdc = new Erc20(wallet, usdcAddress);
+  await usdc.init();
+  const usdcApproveTxReceipt = await usdc.approve(amountIn, router.address);
+  console.log(usdcApproveTxReceipt);
+
+  // Swap
+  const swapInput = {
+    amountIn: amounts[0],
+    amountOut: amounts[1],
+    inTokenAddress: usdcAddress,
+    outTokenAddress: uhuAddress,
+    to: wallet.address,
+    deadline: null
+  }
+  const txReceipt = await router.swapExactTokensForTokens(swapInput);
+  console.log(txReceipt);
 })();
